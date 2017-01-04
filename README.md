@@ -25,5 +25,19 @@ packages = myusps.get_packages(session)
 ## Caching
 Session cookies are cached by default in `./usps_cookies.pickle` and will be used if available instead of logging in. If the cookies expire, a new session will be established automatically.
 
+## Development
+
+### Lint
+
+`tox`
+
+### Release
+
+`make release`
+
+### Contributions
+
+Contributions are welcome. Please submit a PR that passes `tox`.
+
 ## Disclaimer
 Not affiliated with USPS. Does not use [USPS Web Tools API](https://www.usps.com/business/web-tools-apis/welcome.htm). Use at your own risk.

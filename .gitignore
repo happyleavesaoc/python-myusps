@@ -1,0 +1,5 @@
+dist/
+myusps.egg-info/
+.tox/
+*.pickle
+*.pyc

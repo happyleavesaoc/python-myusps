@@ -13,6 +13,7 @@ import myusps
 
 # Establish a session.
 # Use the login credentials you use to login to My USPS via the web.
+# A login failure raises a `USPSError`.
 session = myusps.get_session("username", "password")
 
 # Get your profile information as a dict. Includes name, address, phone, etc.

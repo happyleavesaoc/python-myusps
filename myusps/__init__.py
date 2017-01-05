@@ -13,7 +13,7 @@ PROFILE_XPATH = './/div[@class="atg_store_myProfileInfo"]'
 DASHBOARD_XPATH = './/div[@id="dash-detail"]'
 ERROR_XPATH = './/span[@class="error"]'
 
-TRACKING_NUMBER_XPATH = './/h2[@class="mobile-status-blue"]'
+TRACKING_NUMBER_XPATH = './/h2[contains(@class, "mobile-status-")]'
 STATUS_XPATH = './/span[@class="mypost-tracked-item-details-status"]'
 DATE_XPATH = './/div[@class="mypost-tracked-item-details-date"]'
 LOCATION_XPATH = './/span[@class="mypost-tracked-item-details-location"]'
@@ -117,9 +117,11 @@ def get_packages(session):
     packages = []
     dashboard = _require_elem(session.get(DASHBOARD_URL), DASHBOARD_XPATH)
     for row in dashboard.xpath('ul/li'):
+        status = row.xpath(STATUS_XPATH)[0].text.strip().split(',')
         packages.append({
             'tracking_number': row.xpath(TRACKING_NUMBER_XPATH)[0].text.strip(),
-            'status': row.xpath(STATUS_XPATH)[0].text.strip(),
+            'primary_status': status[0].strip(),
+            'secondary_status': status[1].strip() if len(status) == 2 else '',
             'date': str(parse(' '.join(row.xpath(DATE_XPATH)[0].text.split()))),
             'location': ' '.join(row.xpath(LOCATION_XPATH)[0].text.split()).replace(' ,', ','),
             'shipped_from': row.xpath(SHIPPED_FROM_XPATH)[1].text.strip()

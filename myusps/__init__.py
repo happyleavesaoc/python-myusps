@@ -118,13 +118,14 @@ def get_packages(session):
     dashboard = _require_elem(session.get(DASHBOARD_URL), DASHBOARD_XPATH)
     for row in dashboard.xpath('ul/li'):
         status = row.xpath(STATUS_XPATH)[0].text.strip().split(',')
+        origin = row.xpath(SHIPPED_FROM_XPATH)[1].text
         packages.append({
             'tracking_number': row.xpath(TRACKING_NUMBER_XPATH)[0].text.strip(),
             'primary_status': status[0].strip(),
             'secondary_status': status[1].strip() if len(status) == 2 else '',
             'date': str(parse(' '.join(row.xpath(DATE_XPATH)[0].text.split()))),
             'location': ' '.join(row.xpath(LOCATION_XPATH)[0].text.split()).replace(' ,', ','),
-            'shipped_from': row.xpath(SHIPPED_FROM_XPATH)[1].text.strip()
+            'shipped_from': origin.strip() if origin != None else ''
         })
     return packages
 

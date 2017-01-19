@@ -4,6 +4,14 @@ Python 3 API for [My USPS](https://my.usps.com/mobileWeb/pages/intro/start.actio
 
 ## Install
 
+Install libxml dependency if you don't have it already:
+
+yum: `yum install libxml2-devel`
+
+apt: `apt-get install libxml2-dev`
+
+Install python module:
+
 `pip install myusps`
 
 ## Usage

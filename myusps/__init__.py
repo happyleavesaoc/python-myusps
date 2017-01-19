@@ -11,6 +11,7 @@ from requests.auth import AuthBase
 LOGIN_FORM_XPATH = './/form[@name="loginForm"]'
 PROFILE_XPATH = './/div[@class="atg_store_myProfileInfo"]'
 DASHBOARD_XPATH = './/div[@id="dash-detail"]'
+NO_PACKAGES_XPATH = './/p[@id="package-status"]'
 ERROR_XPATH = './/span[@class="error"]'
 
 TRACKING_NUMBER_XPATH = './/h2[contains(@class, "mobile-status-")]'
@@ -115,16 +116,21 @@ def get_profile(session):
 def get_packages(session):
     """Get package data."""
     packages = []
-    dashboard = _require_elem(session.get(DASHBOARD_URL), DASHBOARD_XPATH)
+    response = session.get(DASHBOARD_URL)
+    no_packages = _get_elem(response, NO_PACKAGES_XPATH)
+    if no_packages is not None:
+        return packages
+    dashboard = _require_elem(response, DASHBOARD_XPATH)
     for row in dashboard.xpath('ul/li'):
         status = row.xpath(STATUS_XPATH)[0].text.strip().split(',')
+        shipped_from = row.xpath(SHIPPED_FROM_XPATH)[1].text or ''
         packages.append({
             'tracking_number': row.xpath(TRACKING_NUMBER_XPATH)[0].text.strip(),
             'primary_status': status[0].strip(),
             'secondary_status': status[1].strip() if len(status) == 2 else '',
             'date': str(parse(' '.join(row.xpath(DATE_XPATH)[0].text.split()))),
             'location': ' '.join(row.xpath(LOCATION_XPATH)[0].text.split()).replace(' ,', ','),
-            'shipped_from': row.xpath(SHIPPED_FROM_XPATH)[1].text.strip()
+            'shipped_from': shipped_from.strip()
         })
     return packages
 

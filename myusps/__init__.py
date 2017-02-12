@@ -21,6 +21,7 @@ LOCATION_XPATH = './/span[@class="mypost-tracked-item-details-location"]'
 SHIPPED_FROM_XPATH = './/div[@class="mobile-from"]/div'
 
 MY_USPS_URL = 'https://reg.usps.com/login?app=MyUSPS'
+AUTHENTICATE_URL = 'https://reg.usps.com/entreg/json/AuthenticateAction'
 LOGIN_URL = 'https://reg.usps.com/entreg/LoginAction'
 DASHBOARD_URL = 'https://my.usps.com/mobileWeb/pages/myusps/HomeAction_input'
 PROFILE_URL = 'https://store.usps.com/store/myaccount/profile.jsp'
@@ -80,8 +81,14 @@ def _get_token(session):
 def _login(session):
     """Login."""
     token = _get_token(session)
+    resp = session.post(AUTHENTICATE_URL, {
+        'username':  session.auth.username,
+        'password': session.auth.password
+    })
+    if resp.json()['rs'] != 'success':
+        raise USPSError('authentication failed')
     error = _get_elem(session.post(LOGIN_URL, {
-        'userName': session.auth.username,
+        'username': session.auth.username,
         'password': session.auth.password,
         'token': token,
         'struts.token.name': 'token'
@@ -123,7 +130,10 @@ def get_packages(session):
     dashboard = _require_elem(response, DASHBOARD_XPATH)
     for row in dashboard.xpath('ul/li'):
         status = row.xpath(STATUS_XPATH)[0].text.strip().split(',')
-        shipped_from = row.xpath(SHIPPED_FROM_XPATH)[1].text or ''
+        shipped_from_elems = row.xpath(SHIPPED_FROM_XPATH)
+        shipped_from = ''
+        if len(shipped_from_elems) > 1:
+            shipped_from = row.xpath(SHIPPED_FROM_XPATH)[1].text or ''
         packages.append({
             'tracking_number': row.xpath(TRACKING_NUMBER_XPATH)[0].text.strip(),
             'primary_status': status[0].strip(),

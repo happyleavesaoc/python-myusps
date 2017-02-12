@@ -2,6 +2,10 @@
 
 Python 3 API for [My USPS](https://my.usps.com/mobileWeb/pages/intro/start.action), a way to track packages.
 
+## Prerequisites
+
+Sign up for My USPS and verify your address.
+
 ## Install
 
 Install libxml dependency if you don't have it already:

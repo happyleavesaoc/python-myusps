@@ -1,3 +1,5 @@
+[![PyPI version](https://badge.fury.io/py/myusps.svg)](https://badge.fury.io/py/myusps)
+
 # python-myusps
 
 Python 3 API for [My USPS](https://my.usps.com/mobileWeb/pages/intro/start.action), a way to track packages.

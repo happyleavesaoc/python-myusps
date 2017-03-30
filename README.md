@@ -10,14 +10,6 @@ Sign up for My USPS and verify your address.
 
 ## Install
 
-Install libxml dependency if you don't have it already:
-
-yum: `yum install libxml2-devel`
-
-apt: `apt-get install libxml2-dev`
-
-Install python module:
-
 `pip install myusps`
 
 ## Usage

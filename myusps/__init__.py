@@ -99,7 +99,11 @@ def _get_shipped_from(row):
 
 def _get_date(row):
     """Get latest package date."""
-    return str(parse(' '.join(row.find(DATE_TAG, DATE_ATTRS).string.split())))
+    date_string = ' '.join(row.find(DATE_TAG, DATE_ATTRS).string.split())
+    try:
+        return str(parse(date_string))
+    except ValueError:
+        return None
 
 
 def _get_tracking_number(row):

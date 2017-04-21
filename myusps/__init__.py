@@ -157,8 +157,12 @@ def get_profile(session):
     """Get profile data."""
     profile = _require_elem(session.get(PROFILE_URL), PROFILE_TAG, PROFILE_ATTRS)
     data = {}
-    for row in profile.find('tr'):
-        data[row[0].text.strip().lower().replace(' ', '_')] = row[1].text.strip()
+    for row in profile.find_all('tr'):
+        cells = row.find_all('td')
+        if len(cells) == 2:
+            key = ' '.join(cells[0].find_all(text=True)).strip().lower().replace(' ', '_')
+            value = ' '.join(cells[1].find_all(text=True)).strip()
+            data[key] = value
     return data
 
 

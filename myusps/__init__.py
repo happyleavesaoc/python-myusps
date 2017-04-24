@@ -233,4 +233,6 @@ def get_session(username, password, cookie_path=COOKIE_PATH):
     session.headers.update({'User-Agent': USER_AGENT})
     if os.path.exists(cookie_path):
         session.cookies = _load_cookies(cookie_path)
+    else:
+        _login(session)
     return session

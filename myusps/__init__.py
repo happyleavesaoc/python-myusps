@@ -1,5 +1,6 @@
 """My USPS interface."""
 
+import datetime
 import os.path
 import pickle
 from bs4 import BeautifulSoup
@@ -15,6 +16,10 @@ PROFILE_TAG = 'div'
 PROFILE_ATTRS = {'class': 'atg_store_myProfileInfo'}
 NO_PACKAGES_TAG = 'p'
 NO_PACKAGES_ATTRS = {'id': 'package-status'}
+INFORMED_DELIVERY_TAG = 'div'
+INFORMED_DELIVERY_ATTRS = {'id': 'realMail'}
+MAIL_IMAGE_TAG = 'div'
+MAIL_IMAGE_ATTRS = {'class': 'mailImageBox'}
 DASHBOARD_TAG = 'div'
 DASHBOARD_ATTRS = {'id': 'dash-detail'}
 SHIPPED_FROM_TAG = 'div'
@@ -35,6 +40,8 @@ MY_USPS_URL = 'https://reg.usps.com/login?app=MyUSPS'
 AUTHENTICATE_URL = 'https://reg.usps.com/entreg/json/AuthenticateAction'
 LOGIN_URL = 'https://reg.usps.com/entreg/LoginAction'
 DASHBOARD_URL = 'https://my.usps.com/mobileWeb/pages/myusps/HomeAction_input'
+INFORMED_DELIVERY_URL = 'https://informeddelivery.usps.com/box/pages/secure/HomeAction_input.action'
+INFORMED_DELIVERY_IMAGE_URL = 'https://informeddelivery.usps.com/box/pages/secure/'
 PROFILE_URL = 'https://store.usps.com/store/myaccount/profile.jsp'
 
 COOKIE_PATH = './usps_cookies.pickle'
@@ -147,7 +154,7 @@ def authenticated(function):
         try:
             return function(*args)
         except USPSError:
-            _login(*args)
+            _login(args[0])
             return function(*args)
     return wrapped
 
@@ -186,6 +193,24 @@ def get_packages(session):
             'shipped_from': _get_shipped_from(row)
         })
     return packages
+
+
+@authenticated
+def get_mail(session, date=datetime.datetime.now().date()):
+    """Get mail data."""
+    mail = []
+    response = session.post(INFORMED_DELIVERY_URL, {
+        'selectedDate': '{0:%m}/{0:%d}/{0:%Y}'.format(date)
+    })
+    container = _require_elem(response, INFORMED_DELIVERY_TAG, INFORMED_DELIVERY_ATTRS)
+    for row in container.find_all(MAIL_IMAGE_TAG, MAIL_IMAGE_ATTRS):
+        img = row.find('img').get('src')
+        mail.append({
+            'id': img.split('=')[1],
+            'date': str(date),
+            'image': '{}{}'.format(INFORMED_DELIVERY_IMAGE_URL, img)
+        })
+    return mail
 
 
 def get_session(username, password, cookie_path=COOKIE_PATH):

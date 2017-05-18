@@ -2,11 +2,11 @@
 
 # python-myusps
 
-Python 3 API for [My USPS](https://my.usps.com/mobileWeb/pages/intro/start.action), a way to track packages.
+Python 3 API for [My USPS](https://my.usps.com/mobileWeb/pages/intro/start.action), a way to track packages and mail.
 
 ## Prerequisites
 
-Sign up for My USPS and verify your address.
+Sign up for My USPS and verify your address. Enable **Informed Delivery** if you want to get mail data.
 
 ## Install
 
@@ -27,6 +27,10 @@ profile = myusps.get_profile(session)
 
 # Get all packages that My UPS knows about.
 packages = myusps.get_packages(session)
+
+# Get mail delivered on a given day.
+import datetime
+mail = myusps.get_mail(session, datetime.datetime.now().date())
 ```
 
 ## Caching

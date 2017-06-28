@@ -219,9 +219,11 @@ def get_packages(session):
 
 
 @authenticated
-def get_mail(session, date=datetime.datetime.now().date()):
+def get_mail(session, date=None):
     """Get mail data."""
     _LOGGER.info("attempting to get informed delivery data")
+    if not date:
+        date = datetime.datetime.now().date()
     mail = []
     response = session.post(INFORMED_DELIVERY_URL, {
         'selectedDate': '{0:%m}/{0:%d}/{0:%Y}'.format(date)

@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/happyleavesaoc/python-limitlessled.svg?branch=master)](https://travis-ci.org/happyleavesaoc/python-limitlessled) [![PyPI version](https://badge.fury.io/py/myusps.svg)](https://badge.fury.io/py/myusps)
+[![Build Status](https://travis-ci.org/happyleavesaoc/python-myusps.svg?branch=master)](https://travis-ci.org/happyleavesaoc/python-myusps) [![PyPI version](https://badge.fury.io/py/myusps.svg)](https://badge.fury.io/py/myusps)
 
 # python-myusps
 

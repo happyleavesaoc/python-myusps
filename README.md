@@ -36,6 +36,8 @@ mail = myusps.get_mail(session, datetime.datetime.now().date())
 ## Caching
 Session cookies are cached by default in `./usps_cookies.pickle` and will be used if available instead of logging in. If the cookies expire, a new session will be established automatically.
 
+HTTP requests are cached by default in `./usps_cache.sqlite`. HTTP caching defaults to 5 minutes and can be turned off by passing `cache=False` to `get_session`. The cache expiry can be adjusted with the keyword argument `cache_expiry`.
+
 ## Development
 
 ### Lint

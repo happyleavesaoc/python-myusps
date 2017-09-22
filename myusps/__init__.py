@@ -267,7 +267,7 @@ def get_mail(session, date=None):
     return mail
 
 
-def get_session(username, password, cookie_path=COOKIE_PATH, cache=True, cache_expiry=1000):
+def get_session(username, password, cookie_path=COOKIE_PATH, cache=True, cache_expiry=300):
     """Get session, existing or new."""
     class USPSAuth(AuthBase):  # pylint: disable=too-few-public-methods
         """USPS authorization storage."""

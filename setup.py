@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='myusps',
-    version='1.2.0',
+    version='1.2.1',
     description='Python 3 API for My USPS, a way to track packages.',
     url='https://github.com/happyleavesaoc/python-myusps/',
     license='MIT',

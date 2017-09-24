@@ -22,7 +22,7 @@ DASHBOARD_URL = 'https://informeddelivery.usps.com/box/pages/secure/DashboardAct
 INFORMED_DELIVERY_IMAGE_URL = 'https://informeddelivery.usps.com/box/pages/secure/'
 PROFILE_URL = 'https://store.usps.com/store/myaccount/profile.jsp'
 COOKIE_PATH = './usps_cookies.pickle'
-CACHE_NAME = 'usps_cache'
+CACHE_PATH = './usps_cache'
 ATTRIBUTION = 'Information provided by www.usps.com'
 USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) ' \
              'Chrome/41.0.2228.0 Safari/537.36'
@@ -266,8 +266,9 @@ def get_mail(session, date=None):
         })
     return mail
 
-
-def get_session(username, password, cookie_path=COOKIE_PATH, cache=True, cache_expiry=300):
+# pylint: disable=too-many-arguments
+def get_session(username, password, cookie_path=COOKIE_PATH, cache=True,
+                cache_expiry=300, cache_path=CACHE_PATH):
     """Get session, existing or new."""
     class USPSAuth(AuthBase):  # pylint: disable=too-few-public-methods
         """USPS authorization storage."""
@@ -284,7 +285,7 @@ def get_session(username, password, cookie_path=COOKIE_PATH, cache=True, cache_e
 
     session = requests.Session()
     if cache:
-        session = requests_cache.core.CachedSession(cache_name=CACHE_NAME,
+        session = requests_cache.core.CachedSession(cache_name=cache_path,
                                                     expire_after=cache_expiry)
     session.auth = USPSAuth(username, password, cookie_path)
     session.headers.update({'User-Agent': USER_AGENT})

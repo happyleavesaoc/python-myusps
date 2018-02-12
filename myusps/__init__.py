@@ -57,7 +57,7 @@ def _get_primary_status(row):
     try:
         return row.find('div', {'class': 'pack_h3'}).string
     except AttributeError:
-        return
+        return None
 
 
 def _get_secondary_status(row):
@@ -65,7 +65,7 @@ def _get_secondary_status(row):
     try:
         return row.find('div', {'id': 'coltextR3'}).contents[1]
     except (AttributeError, IndexError):
-        return
+        return None
 
 
 def _get_shipped_from(row):
@@ -73,10 +73,10 @@ def _get_shipped_from(row):
     try:
         spans = row.find('div', {'id': 'coltextR2'}).find_all('span')
         if len(spans) < 2:
-            return
+            return None
         return spans[1].string
     except AttributeError:
-        return
+        return None
 
 
 def _get_status_timestamp(row):
@@ -84,14 +84,14 @@ def _get_status_timestamp(row):
     try:
         divs = row.find('div', {'id': 'coltextR3'}).find_all('div')
         if len(divs) < 2:
-            return
+            return None
         timestamp_string = divs[1].string
     except AttributeError:
-        return
+        return None
     try:
         return parse(timestamp_string)
     except ValueError:
-        return
+        return None
 
 
 def _get_delivery_date(row):
@@ -100,11 +100,11 @@ def _get_delivery_date(row):
         month = row.find('div', {'class': 'date-small'}).string
         day = row.find('div', {'class': 'date-num-large'}).string
     except AttributeError:
-        return
+        return None
     try:
         return parse('{} {}'.format(month, day)).date()
     except ValueError:
-        return
+        return None
 
 
 def _get_tracking_number(row):
@@ -112,7 +112,7 @@ def _get_tracking_number(row):
     try:
         return row.find('div', {'class': 'pack_h4'}).string
     except AttributeError:
-        return
+        return None
 
 
 def _get_mailpiece_image(row):
@@ -120,13 +120,13 @@ def _get_mailpiece_image(row):
     try:
         return row.find('img', {'class': 'mailpieceIMG'}).get('src')
     except AttributeError:
-        return
+        return None
 
 
 def _get_mailpiece_id(image):
     parts = image.split('=')
     if len(parts) != 2:
-        return
+        return None
     return parts[1]
 
 
@@ -154,8 +154,8 @@ def _login(session):
         WebDriverWait(driver, LOGIN_TIMEOUT).until(EC.title_is(WELCOME_TITLE))
     except TimeoutException:
         raise USPSError('login failed')
-    for c in driver.get_cookies():
-        session.cookies.set(name=c['name'], value=c['value'])
+    for cookie in driver.get_cookies():
+        session.cookies.set(name=cookie['name'], value=cookie['value'])
     _save_cookies(session.cookies, session.auth.cookie_path)
 
 
@@ -245,8 +245,7 @@ def get_mail(session, date=None):
 
 # pylint: disable=too-many-arguments
 def get_session(username, password, cookie_path=COOKIE_PATH, cache=True,
-                cache_expiry=300, cache_path=CACHE_PATH,
-                webdriver_args=['--headless']):
+                cache_expiry=300, cache_path=CACHE_PATH, webdriver_args=None):
     """Get session, existing or new."""
     class USPSAuth(AuthBase):  # pylint: disable=too-few-public-methods
         """USPS authorization storage."""
@@ -262,6 +261,8 @@ def get_session(username, password, cookie_path=COOKIE_PATH, cache=True,
             """Call is no-op."""
             return r
 
+    if not webdriver_args:
+        webdriver_args = ['--headless']
     session = requests.Session()
     if cache:
         session = requests_cache.core.CachedSession(cache_name=cache_path,

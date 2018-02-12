@@ -10,6 +10,10 @@ from dateutil.parser import parse
 import requests
 from requests.auth import AuthBase
 import requests_cache
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -17,19 +21,17 @@ HTML_PARSER = 'html.parser'
 BASE_URL = 'https://reg.usps.com'
 MY_USPS_URL = BASE_URL + '/login?app=MyUSPS'
 AUTHENTICATE_URL = BASE_URL + '/entreg/json/AuthenticateAction'
-LOGIN_URL = BASE_URL + '/entreg/LoginAction'
+LOGIN_URL = BASE_URL + '/entreg/LoginAction_input?app=Phoenix&appURL=https://www.usps.com/'
 DASHBOARD_URL = 'https://informeddelivery.usps.com/box/pages/secure/DashboardAction_input.action'
 INFORMED_DELIVERY_IMAGE_URL = 'https://informeddelivery.usps.com/box/pages/secure/'
 PROFILE_URL = 'https://store.usps.com/store/myaccount/profile.jsp'
+WELCOME_TITLE = 'Welcome | USPS'
+LOGIN_TIMEOUT = 10
 COOKIE_PATH = './usps_cookies.pickle'
 CACHE_PATH = './usps_cache'
 ATTRIBUTION = 'Information provided by www.usps.com'
 USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) ' \
              'Chrome/41.0.2228.0 Safari/537.36'
-EFMJ_HEADER = 'x-efmj'
-UUID_TOKEN_REGEX = re.compile(r'"uniqueStateKey",100,"(.+?)"', re.MULTILINE)
-PAYLOAD_KEY_REGEX = re.compile(r'httpMethods:\["POST"\]\}\],"(.+?)"', re.MULTILINE)
-
 
 
 class USPSError(Exception):
@@ -133,52 +135,27 @@ def _get_mailpiece_url(image):
     return '{}{}'.format(INFORMED_DELIVERY_IMAGE_URL, image)
 
 
-def _get_login_metadata(session):
-    """Get login metadata."""
-    resp = session.get(MY_USPS_URL)
-    # Token for login form submission
-    parsed = BeautifulSoup(resp.text, HTML_PARSER)
-    form = parsed.find('form', {'name': 'loginForm'})
-    token_elem = form.find('input', {'name': 'token'})
-    # UUID token and payload key for GTM compatibility
-    uuid_token_result = UUID_TOKEN_REGEX.search(resp.text)
-    payload_key_result = PAYLOAD_KEY_REGEX.search(resp.text)
-    if token_elem and uuid_token_result and payload_key_result:
-        _LOGGER.debug('login form token: %s', token_elem.get('value'))
-        _LOGGER.debug('gtm uuid token: %s', uuid_token_result.group(1))
-        _LOGGER.debug('gtm payload key: %s', payload_key_result.group(1))
-        return token_elem.get('value'), uuid_token_result.group(1), payload_key_result.group(1)
-    raise USPSError('No login metadata found')
-
-
 def _login(session):
     """Login."""
     _LOGGER.debug("attempting login")
     session.cookies.clear()
     session.remove_expired_responses()
-    token, uuid_token, payload_key = _get_login_metadata(session)
-    resp = session.post(AUTHENTICATE_URL, {
-        'username':  session.auth.username,
-        'password': session.auth.password
-    }, headers={
-        EFMJ_HEADER+'uniqueStateKey': uuid_token,
-        EFMJ_HEADER+payload_key: ''
-    })
-    data = resp.json()
-    if 'rs' not in data:
-        raise USPSError('authentication failed')
-    if data['rs'] != 'success':
-        raise USPSError('authentication failed')
-    resp = session.post(LOGIN_URL, {
-        'username': session.auth.username,
-        'password': session.auth.password,
-        'token': token,
-        'struts.token.name': 'token'
-    }, allow_redirects=False)
-    parsed = BeautifulSoup(resp.text, HTML_PARSER)
-    error = parsed.find('span', {'class': 'error'})
-    if error is not None:
-        raise USPSError(error.text.strip())
+    chrome_options = webdriver.ChromeOptions()
+    for arg in session.auth.webdriver_args:
+        chrome_options.add_argument(arg)
+    driver = webdriver.Chrome(chrome_options=chrome_options)
+    driver.get(LOGIN_URL)
+    username = driver.find_element_by_name('username')
+    username.send_keys(session.auth.username)
+    password = driver.find_element_by_name('password')
+    password.send_keys(session.auth.password)
+    driver.find_element_by_id('btn-submit').click()
+    try:
+        WebDriverWait(driver, LOGIN_TIMEOUT).until(EC.title_is(WELCOME_TITLE))
+    except TimeoutException:
+        raise USPSError('login failed')
+    for c in driver.get_cookies():
+        session.cookies.set(name=c['name'], value=c['value'])
     _save_cookies(session.cookies, session.auth.cookie_path)
 
 
@@ -268,16 +245,18 @@ def get_mail(session, date=None):
 
 # pylint: disable=too-many-arguments
 def get_session(username, password, cookie_path=COOKIE_PATH, cache=True,
-                cache_expiry=300, cache_path=CACHE_PATH):
+                cache_expiry=300, cache_path=CACHE_PATH,
+                webdriver_args=['--headless']):
     """Get session, existing or new."""
     class USPSAuth(AuthBase):  # pylint: disable=too-few-public-methods
         """USPS authorization storage."""
 
-        def __init__(self, username, password, cookie_path):
+        def __init__(self, username, password, cookie_path, webdriver_args):
             """Init."""
             self.username = username
             self.password = password
             self.cookie_path = cookie_path
+            self.webdriver_args = webdriver_args
 
         def __call__(self, r):
             """Call is no-op."""
@@ -287,7 +266,7 @@ def get_session(username, password, cookie_path=COOKIE_PATH, cache=True,
     if cache:
         session = requests_cache.core.CachedSession(cache_name=cache_path,
                                                     expire_after=cache_expiry)
-    session.auth = USPSAuth(username, password, cookie_path)
+    session.auth = USPSAuth(username, password, cookie_path, webdriver_args)
     session.headers.update({'User-Agent': USER_AGENT})
     if os.path.exists(cookie_path):
         _LOGGER.debug("cookie found at: %s", cookie_path)

@@ -61,7 +61,7 @@ class TestMyUSPSPackages(unittest.TestCase):
 
 
     def test_get_delivery_date(self):
-        self.assertEqual(myusps._get_delivery_date(TestMyUSPSPackages.row), datetime.datetime(2017, 9, 7).date())
+        self.assertEqual(myusps._get_delivery_date(TestMyUSPSPackages.row), datetime.datetime(datetime.datetime.now().year, 9, 7).date())
 
 
 class TestMyUSPSMailpieces(unittest.TestCase):

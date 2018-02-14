@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='myusps',
     version='1.3.0',
-    description='Python 3 API for USPS Informed Delivery, a way to track packages.',
+    description='Python 3 API for USPS Informed Delivery, a way to track packages and mailpieces.',
     url='https://github.com/happyleavesaoc/python-myusps/',
     license='MIT',
     author='happyleaves',

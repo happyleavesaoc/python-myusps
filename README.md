@@ -2,11 +2,23 @@
 
 # python-myusps
 
-Python 3 API for [My USPS](https://my.usps.com/mobileWeb/pages/intro/start.action), a way to track packages and mail.
+Python 3 API for [USPS Informed Delivery](https://my.usps.com/mobileWeb/pages/intro/start.action), a way to track packages and mail.
 
 ## Prerequisites
 
-Sign up for My USPS and verify your address. Enable **Informed Delivery** if you want to get mail data.
+### USPS
+
+Sign up for Informed Delivery and verify your address.
+
+### Chrome
+
+Install Google Chrome and Chromedriver. These are dependencies for the Selenium webdriver, which is used internally to this module to facilitate the login process.
+
+Instructions (adapt as necessary for your OS):
+  - Ubuntu 16: https://gist.github.com/ziadoz/3e8ab7e944d02fe872c3454d17af31a5
+  - RHEL 7: https://stackoverflow.com/a/46686621
+
+Note that installing Selenium Server is not required.
 
 ## Install
 

@@ -32,7 +32,10 @@ CACHE_PATH = './usps_cache'
 ATTRIBUTION = 'Information provided by www.usps.com'
 USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) ' \
              'Chrome/41.0.2228.0 Safari/537.36'
-WEBDRIVER_ARGS = ['--headless', '--user-agent={}'.format(USER_AGENT)]
+WEBDRIVER_ARGS = [
+    '--headless', '--user-agent={}'.format(USER_AGENT), '--disable-extensions',
+    '--disable-gpu', '--no-sandbox'
+]
 
 
 class USPSError(Exception):
@@ -148,7 +151,10 @@ def _login(session):
     """
     _LOGGER.debug("attempting login")
     session.cookies.clear()
-    session.remove_expired_responses()
+    try:
+        session.remove_expired_responses()
+    except AttributeError:
+        pass
     chrome_options = webdriver.ChromeOptions()
     for arg in WEBDRIVER_ARGS:
         chrome_options.add_argument(arg)

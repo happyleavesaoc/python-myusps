@@ -141,7 +141,7 @@ def _get_mailpiece_url(image):
 def _get_driver(driver_type):
     """Get webdriver."""
     if driver_type == 'phantomjs':
-        return webdriver.PhantomJS()
+        return webdriver.PhantomJS(service_log_path=os.path.devnull)
     elif driver_type == 'chrome':
         chrome_options = webdriver.ChromeOptions()
         for arg in CHROME_WEBDRIVER_ARGS:

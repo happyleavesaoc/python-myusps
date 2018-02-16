@@ -32,7 +32,7 @@ CACHE_PATH = './usps_cache'
 ATTRIBUTION = 'Information provided by www.usps.com'
 USER_AGENT = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) ' \
              'Chrome/41.0.2228.0 Safari/537.36'
-WEBDRIVER_ARGS = [
+CHROME_WEBDRIVER_ARGS = [
     '--headless', '--user-agent={}'.format(USER_AGENT), '--disable-extensions',
     '--disable-gpu', '--no-sandbox'
 ]
@@ -138,6 +138,17 @@ def _get_mailpiece_url(image):
     """Get mailpiece url."""
     return '{}{}'.format(INFORMED_DELIVERY_IMAGE_URL, image)
 
+def _get_driver(driver_type):
+    """Get webdriver."""
+    if driver_type == 'phantomjs':
+        return webdriver.PhantomJS()
+    elif driver_type == 'chrome':
+        chrome_options = webdriver.ChromeOptions()
+        for arg in CHROME_WEBDRIVER_ARGS:
+            chrome_options.add_argument(arg)
+        return webdriver.Chrome(chrome_options=chrome_options)
+    else:
+        raise USPSError('{} not supported'.format(driver_type))
 
 def _login(session):
     """Login.
@@ -155,11 +166,8 @@ def _login(session):
         session.remove_expired_responses()
     except AttributeError:
         pass
-    chrome_options = webdriver.ChromeOptions()
-    for arg in WEBDRIVER_ARGS:
-        chrome_options.add_argument(arg)
     try:
-        driver = webdriver.Chrome(chrome_options=chrome_options)
+        driver = _get_driver(session.auth.driver)
     except WebDriverException as exception:
         raise USPSError(str(exception))
     driver.get(LOGIN_URL)
@@ -263,16 +271,17 @@ def get_mail(session, date=None):
 
 # pylint: disable=too-many-arguments
 def get_session(username, password, cookie_path=COOKIE_PATH, cache=True,
-                cache_expiry=300, cache_path=CACHE_PATH):
+                cache_expiry=300, cache_path=CACHE_PATH, driver='phantomjs'):
     """Get session, existing or new."""
     class USPSAuth(AuthBase):  # pylint: disable=too-few-public-methods
         """USPS authorization storage."""
 
-        def __init__(self, username, password, cookie_path):
+        def __init__(self, username, password, cookie_path, driver):
             """Init."""
             self.username = username
             self.password = password
             self.cookie_path = cookie_path
+            self.driver = driver
 
         def __call__(self, r):
             """Call is no-op."""
@@ -282,7 +291,7 @@ def get_session(username, password, cookie_path=COOKIE_PATH, cache=True,
     if cache:
         session = requests_cache.core.CachedSession(cache_name=cache_path,
                                                     expire_after=cache_expiry)
-    session.auth = USPSAuth(username, password, cookie_path)
+    session.auth = USPSAuth(username, password, cookie_path, driver)
     session.headers.update({'User-Agent': USER_AGENT})
     if os.path.exists(cookie_path):
         _LOGGER.debug("cookie found at: %s", cookie_path)

@@ -14,6 +14,7 @@ from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.firefox.options import Options
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -36,6 +37,8 @@ CHROME_WEBDRIVER_ARGS = [
     '--headless', '--user-agent={}'.format(USER_AGENT), '--disable-extensions',
     '--disable-gpu', '--no-sandbox'
 ]
+FIREFOXOPTIONS = Options()
+FIREFOXOPTIONS.add_argument("--headless")
 
 
 class USPSError(Exception):
@@ -142,6 +145,8 @@ def _get_driver(driver_type):
     """Get webdriver."""
     if driver_type == 'phantomjs':
         return webdriver.PhantomJS(service_log_path=os.path.devnull)
+    if driver_type == 'firefox':
+        return webdriver.Firefox(firefox_options=FIREFOXOPTIONS)
     elif driver_type == 'chrome':
         chrome_options = webdriver.ChromeOptions()
         for arg in CHROME_WEBDRIVER_ARGS:

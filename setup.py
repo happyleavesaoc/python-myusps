@@ -9,7 +9,7 @@ setup(
     author='happyleaves',
     author_email='happyleaves.tfr@gmail.com',
     packages=find_packages(),
-    install_requires=['beautifulsoup4==4.6.0', 'python-dateutil==2.6.0', 'requests==2.12.4', 'requests-cache==0.4.13', 'selenium==3.11.0'],
+    install_requires=['beautifulsoup4==4.6.0', 'python-dateutil==2.6.0', 'requests>=2.20.0', 'requests-cache==0.4.13', 'selenium==3.11.0'],
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
